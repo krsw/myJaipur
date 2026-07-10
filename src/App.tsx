@@ -15,10 +15,10 @@ function App() {
   } = useJaipur();
 
   return (
-    <div className="w-screen h-screen flex flex-col justify-between bg-slate-950 p-3 text-slate-100 overflow-hidden select-none">
+    <div className="w-screen h-[100dvh] flex flex-col justify-between bg-slate-950 p-2 sm:p-3 text-slate-100 overflow-hidden select-none">
       
       {/* Player 1 Section (Rotated 180 degrees by default for head-to-head iPad play) */}
-      <div className="flex-1 min-h-0 h-[36vh]">
+      <div className="flex-1 min-h-0 h-[31dvh] portrait:h-[35dvh]">
         <PlayerSection
           player={state.player1}
           opponentCamelCount={state.player2.camelCount}
@@ -30,7 +30,7 @@ function App() {
       </div>
 
       {/* Central Shared Market Board */}
-      <div className="my-3 shrink-0">
+      <div className="my-1.5 sm:my-2 shrink-0">
         <MarketBoard
           goodsStocks={state.goodsStocks}
           bonusStocks={state.bonusStocks}
@@ -42,7 +42,7 @@ function App() {
       </div>
 
       {/* Player 2 Section (Normal orientation) */}
-      <div className="flex-1 min-h-0 h-[36vh]">
+      <div className="flex-1 min-h-0 h-[31dvh] portrait:h-[35dvh]">
         <PlayerSection
           player={state.player2}
           opponentCamelCount={state.player1.camelCount}

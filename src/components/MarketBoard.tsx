@@ -64,18 +64,18 @@ export const MarketBoard: React.FC<MarketBoardProps> = ({
       </div>
 
       {/* Main Board Piles */}
-      <div className="grid grid-cols-12 gap-3 items-stretch mb-3">
+      <div className="grid grid-cols-12 gap-3 portrait:gap-1.5 items-stretch mb-3 portrait:mb-1.5">
         {/* Goods Piles (9 cols) */}
-        <div className="col-span-9 bg-slate-950/30 border border-slate-800/50 rounded-2xl p-2 flex flex-wrap justify-center items-center gap-2">
+        <div className="col-span-9 bg-slate-950/30 border border-slate-800/50 rounded-2xl p-2 portrait:p-1 flex flex-wrap justify-center items-center gap-2 portrait:gap-1">
           {(Object.keys(goodsStocks) as GoodsType[]).map((type) => (
             <TokenPile key={type} type={type} tokens={goodsStocks[type]} />
           ))}
         </div>
 
         {/* Bonus Piles (3 cols) */}
-        <div className="col-span-3 bg-slate-950/30 border border-slate-800/50 rounded-2xl p-2 flex flex-col justify-between items-center gap-1.5">
+        <div className="col-span-3 bg-slate-950/30 border border-slate-800/50 rounded-2xl p-2 portrait:p-1.5 flex flex-col justify-between items-center gap-1.5 portrait:gap-1">
           <div className="text-center w-full pb-0.5 border-b border-slate-800/50">
-            <span className="text-[9px] font-bold text-slate-400">ボーナストークン</span>
+            <span className="text-[9px] portrait:text-[8px] font-bold text-slate-400">ボーナストークン</span>
           </div>
 
           {(['bonus3', 'bonus4', 'bonus5'] as BonusType[]).map((type) => {
@@ -86,16 +86,16 @@ export const MarketBoard: React.FC<MarketBoardProps> = ({
             return (
               <div
                 key={type}
-                className="flex items-center justify-between p-1 bg-slate-800/30 border border-slate-700/30 rounded-lg w-full px-2"
+                className="flex items-center justify-between p-1 portrait:p-0.5 bg-slate-800/30 border border-slate-700/30 rounded-lg w-full px-2 portrait:px-1"
               >
                 <div className="text-left">
-                  <div className="text-[10px] font-black text-slate-200 leading-tight">{label}</div>
-                  <div className="text-[8px] text-slate-500 font-medium leading-none">{valRange}</div>
+                  <div className="text-[10px] portrait:text-[8.5px] font-black text-slate-200 leading-tight">{label}</div>
+                  <div className="text-[8px] portrait:text-[7px] text-slate-500 font-medium leading-none">{valRange}</div>
                 </div>
                 <div className="flex items-baseline gap-0.5 bg-slate-900/60 px-1.5 py-0.5 rounded border border-slate-850">
-                  <span className="text-[8px] text-slate-500">残</span>
-                  <span className="text-[11px] font-black text-yellow-400">{count}</span>
-                  <span className="text-[8px] text-slate-500">枚</span>
+                  <span className="text-[8px] portrait:text-[6.5px] text-slate-500">残</span>
+                  <span className="text-[11px] portrait:text-[9.5px] font-black text-yellow-400">{count}</span>
+                  <span className="text-[8px] portrait:text-[6.5px] text-slate-500">枚</span>
                 </div>
               </div>
             );
@@ -104,9 +104,9 @@ export const MarketBoard: React.FC<MarketBoardProps> = ({
       </div>
 
       {/* History Log Panel */}
-      <div className="bg-slate-950/40 rounded-xl border border-slate-800/60 px-2 py-1.5">
+      <div className="bg-slate-950/40 rounded-xl border border-slate-800/60 px-2 py-1.5 portrait:py-1">
         <div className="text-[9px] font-bold text-slate-400 tracking-wider mb-1">履歴ログ</div>
-        <div className="h-10 overflow-y-auto pr-1 text-[10px] font-medium space-y-0.5 scrollbar-thin">
+        <div className="h-10 portrait:h-6 overflow-y-auto pr-1 text-[10px] portrait:text-[8.5px] font-medium space-y-0.5 scrollbar-thin">
           {history.map((log, index) => (
             <div key={index} className="text-slate-300 flex items-start gap-1">
               <span className="text-yellow-500/80">▸</span>

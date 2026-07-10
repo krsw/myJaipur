@@ -21,12 +21,12 @@ export const TokenPile: React.FC<TokenPileProps> = ({ type, tokens }) => {
   const topValue = count > 0 ? tokens[0] : null;
 
   return (
-    <div className="flex flex-col items-center justify-center p-2 bg-slate-800/40 rounded-xl border border-slate-700/50 backdrop-blur-sm w-24 sm:w-28">
-      <span className="text-xs text-slate-400 mb-1">{config.label}</span>
+    <div className="flex flex-col items-center justify-center p-2 portrait:p-1 bg-slate-800/40 rounded-xl border border-slate-700/50 backdrop-blur-sm w-24 sm:w-28 portrait:w-[68px]">
+      <span className="text-xs portrait:text-[10px] text-slate-400 mb-1 leading-none">{config.label}</span>
       
-      <div className="relative h-20 w-16 sm:w-20 flex items-center justify-center">
+      <div className="relative h-20 portrait:h-12 w-16 sm:w-20 portrait:w-10 flex items-center justify-center">
         {count === 0 ? (
-          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center text-slate-600 text-xs font-bold">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 portrait:w-8 portrait:h-8 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center text-slate-600 text-xs portrait:text-[8px] font-bold">
             Empty
           </div>
         ) : (
@@ -37,7 +37,7 @@ export const TokenPile: React.FC<TokenPileProps> = ({ type, tokens }) => {
             return (
               <div
                 key={index}
-                className={`absolute w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 ${config.border} ${config.bg} ${
+                className={`absolute w-12 h-12 sm:w-16 sm:h-16 portrait:w-8 portrait:h-8 rounded-full border-2 ${config.border} ${config.bg} ${
                   isTop ? `${config.glow} z-10` : 'opacity-70'
                 } flex items-center justify-center transition-all duration-300`}
                 style={{
@@ -46,7 +46,7 @@ export const TokenPile: React.FC<TokenPileProps> = ({ type, tokens }) => {
                 }}
               >
                 {isTop && (
-                  <div className={`text-base sm:text-lg font-extrabold flex flex-col items-center justify-center ${config.text}`}>
+                  <div className={`text-base sm:text-lg portrait:text-xs font-extrabold flex flex-col items-center justify-center ${config.text}`}>
                     <span>{topValue}</span>
                   </div>
                 )}
@@ -56,8 +56,8 @@ export const TokenPile: React.FC<TokenPileProps> = ({ type, tokens }) => {
         )}
       </div>
 
-      <div className="mt-2 text-xs font-medium text-slate-300">
-        残り <span className="font-bold text-sm text-white">{count}</span> 枚
+      <div className="mt-2 portrait:mt-1.5 text-xs portrait:text-[9px] font-medium text-slate-300 leading-none">
+        残り <span className="font-bold text-sm portrait:text-[10px] text-white">{count}</span> 枚
       </div>
     </div>
   );

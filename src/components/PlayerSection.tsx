@@ -71,7 +71,7 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
   return (
     <div
       id={player.id}
-      className={`flex flex-col bg-slate-900/90 border border-slate-800 rounded-2xl px-3 py-2 shadow-2xl transition-transform duration-500 ${
+      className={`flex flex-col bg-slate-900/90 border border-slate-800 rounded-2xl px-3 py-2 portrait:px-1.5 portrait:py-1 shadow-2xl transition-transform duration-500 ${
         isRotated ? 'rotate-180' : ''
       } h-full justify-between`}
     >
@@ -107,14 +107,14 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
         </div>
       </div>
 
-      {/* Main Content (Split 9:3) */}
-      <div className="grid grid-cols-12 gap-2 flex-grow min-h-0 overflow-hidden items-stretch">
+      {/* Main Content (Split 9:3, changes to 10:2 in portrait mode to give wider space for cards) */}
+      <div className="grid grid-cols-12 gap-2 portrait:gap-1 flex-grow min-h-0 overflow-hidden items-stretch">
         
         {/* Left Side: Goods Sale Panel & Camel Herd Control */}
-        <div className="col-span-9 flex flex-col justify-between min-h-0">
+        <div className="col-span-9 portrait:col-span-10 flex flex-col justify-between min-h-0">
           
           {/* Goods Cards & Camel Card Grid */}
-          <div className="grid grid-cols-7 gap-1.5 flex-grow">
+          <div className="grid grid-cols-7 gap-1.5 portrait:gap-0.5 flex-grow">
             {(Object.keys(commodityLabels) as GoodsType[]).map((type) => {
               const config = commodityLabels[type];
               const stock = goodsStocks[type].length;
@@ -126,44 +126,44 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
                 <div
                   key={type}
                   data-good={type}
-                  className={`flex flex-col justify-between p-1.5 rounded-xl bg-gradient-to-br ${config.colorClass} shadow border border-white/5`}
+                  className={`flex flex-col justify-between p-1.5 portrait:p-0.5 rounded-xl portrait:rounded-lg bg-gradient-to-br ${config.colorClass} shadow border border-white/5`}
                 >
                   {/* Name and Tag */}
-                  <div className="flex flex-col text-[10px] font-black leading-tight mb-1">
+                  <div className="flex flex-col text-[10px] portrait:text-[8px] font-black leading-tight mb-1 portrait:mb-0.5">
                     <span>{config.label}</span>
-                    <span className="opacity-75 text-[7px] font-medium">
-                      {isLuxury ? '高級' : `在庫:${stock}`}
+                    <span className="opacity-75 text-[7px] portrait:text-[6px] font-medium">
+                      {isLuxury ? '高級' : `数:${stock}`}
                     </span>
                   </div>
 
                   {stock === 0 ? (
-                    <div className="py-3 text-center text-[10px] font-black tracking-widest opacity-60">
-                      売り切れ
+                    <div className="py-3 portrait:py-2 text-center text-[10px] portrait:text-[8px] font-black tracking-widest opacity-60">
+                      切
                     </div>
                   ) : isLuxury && stock < 2 ? (
-                    <div className="py-2.5 text-center text-[7px] font-semibold tracking-normal opacity-85 leading-tight">
-                      不可(在庫1)
+                    <div className="py-2.5 portrait:py-1.5 text-center text-[7px] portrait:text-[6px] font-semibold tracking-normal opacity-85 leading-tight">
+                      不可
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-1 mt-1 shrink-0">
+                    <div className="flex flex-col gap-1 portrait:gap-0.5 mt-1 portrait:mt-0.5 shrink-0">
                       {/* Counter */}
-                      <div className="flex justify-between items-center bg-black/20 rounded-md px-0.5 py-0.5">
+                      <div className="flex justify-between items-center bg-black/20 rounded-md portrait:rounded px-0.5 py-0.5">
                         <button
                           onClick={() => handleDecrement(type)}
                           disabled={count <= (isLuxury ? 2 : 1)}
                           data-action="decrement"
-                          className="w-4 h-4 flex items-center justify-center font-bold text-white text-[9px] hover:bg-white/10 disabled:opacity-30 rounded transition"
+                          className="w-4 h-4 portrait:w-3 portrait:h-3 flex items-center justify-center font-bold text-white text-[9px] portrait:text-[7px] hover:bg-white/10 disabled:opacity-30 rounded transition"
                         >
                           -
                         </button>
-                        <span className="font-extrabold text-[10px] text-center min-w-[8px]">
+                        <span className="font-extrabold text-[10px] portrait:text-[8.5px] text-center min-w-[8px]">
                           {count}
                         </span>
                         <button
                           onClick={() => handleIncrement(type)}
                           disabled={count >= stock}
                           data-action="increment"
-                          className="w-4 h-4 flex items-center justify-center font-bold text-white text-[9px] hover:bg-white/10 disabled:opacity-30 rounded transition"
+                          className="w-4 h-4 portrait:w-3 portrait:h-3 flex items-center justify-center font-bold text-white text-[9px] portrait:text-[7px] hover:bg-white/10 disabled:opacity-30 rounded transition"
                         >
                           +
                         </button>
@@ -174,7 +174,7 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
                         onClick={() => triggerSell(type)}
                         disabled={isDisabled}
                         data-action="sell"
-                        className="w-full py-0.5 rounded bg-black/40 hover:bg-black/60 active:scale-95 text-[9px] font-black text-white transition disabled:opacity-40"
+                        className="w-full py-0.5 portrait:py-0 rounded bg-black/40 hover:bg-black/60 active:scale-95 text-[9px] portrait:text-[8px] font-black text-white transition disabled:opacity-40"
                       >
                         売却
                       </button>
@@ -185,38 +185,38 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
             })}
 
             {/* 7th Card: Camel Herd Control */}
-            <div className="flex flex-col justify-between p-1.5 rounded-xl bg-slate-800 border border-slate-700/60 shadow text-slate-100">
-              <div className="flex flex-col text-[10px] font-black leading-tight mb-1">
+            <div className="flex flex-col justify-between p-1.5 portrait:p-0.5 rounded-xl portrait:rounded-lg bg-slate-800 border border-slate-700/60 shadow text-slate-100">
+              <div className="flex flex-col text-[10px] portrait:text-[8px] font-black leading-tight mb-1 portrait:mb-0.5">
                 <span>🐫 ラクダ</span>
-                <span className="opacity-75 text-[7px] font-medium">最多で+5点</span>
+                <span className="opacity-75 text-[7px] portrait:text-[6px] font-medium">最多:+5</span>
               </div>
               
-              <div className="flex flex-col gap-1 mt-1 shrink-0">
+              <div className="flex flex-col gap-1 portrait:gap-0.5 mt-1 portrait:mt-0.5 shrink-0">
                 {/* Counter */}
-                <div className="flex justify-between items-center bg-black/20 rounded-md px-0.5 py-0.5">
+                <div className="flex justify-between items-center bg-black/20 rounded-md portrait:rounded px-0.5 py-0.5">
                   <button
                     onClick={() => onUpdateCamel(player.id, player.camelCount - 1)}
-                    className="w-4 h-4 flex items-center justify-center font-bold text-slate-400 hover:text-white bg-slate-700 rounded transition text-[9px]"
+                    className="w-4 h-4 portrait:w-3 portrait:h-3 flex items-center justify-center font-bold text-slate-400 hover:text-white bg-slate-700 rounded transition text-[9px] portrait:text-[7px]"
                   >
                     -
                   </button>
-                  <span className="font-extrabold text-[10px] text-center min-w-[8px]">
+                  <span className="font-extrabold text-[10px] portrait:text-[8.5px] text-center min-w-[8px]">
                     {player.camelCount}
                   </span>
                   <button
                     onClick={() => onUpdateCamel(player.id, player.camelCount + 1)}
-                    className="w-4 h-4 flex items-center justify-center font-bold text-slate-400 hover:text-white bg-slate-700 rounded transition text-[9px]"
+                    className="w-4 h-4 portrait:w-3 portrait:h-3 flex items-center justify-center font-bold text-slate-400 hover:text-white bg-slate-700 rounded transition text-[9px] portrait:text-[7px]"
                   >
                     +
                   </button>
                 </div>
 
                 {/* Status Indicator */}
-                <div className="w-full text-[8px] py-0.5 text-center rounded bg-slate-900/60 font-black">
+                <div className="w-full text-[8px] portrait:text-[7px] py-0.5 text-center rounded bg-slate-900/60 font-black">
                   {hasCamelBonus ? (
-                    <span className="text-yellow-400">最多 (+5)</span>
+                    <span className="text-yellow-400">最多</span>
                   ) : (
-                    <span className="text-slate-500 font-medium">ボーナス外</span>
+                    <span className="text-slate-500 font-medium">なし</span>
                   )}
                 </div>
               </div>
@@ -227,13 +227,13 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
         </div>
 
         {/* Right Side: Acquired tokens breakdown list */}
-        <div className="col-span-3 flex flex-col bg-slate-950/40 rounded-xl border border-slate-800/40 p-2 min-h-0 overflow-hidden justify-between">
-          <div className="text-[9px] font-bold text-slate-400 border-b border-slate-800/60 pb-1 mb-1.5 flex justify-between shrink-0">
-            <span>獲得トークン</span>
-            <span>枚数/点</span>
+        <div className="col-span-3 portrait:col-span-2 flex flex-col bg-slate-950/40 rounded-xl border border-slate-800/40 p-2 portrait:p-1 min-h-0 overflow-hidden justify-between">
+          <div className="text-[9px] portrait:text-[8px] font-bold text-slate-400 border-b border-slate-800/60 pb-1 mb-1.5 flex justify-between shrink-0">
+            <span>獲得</span>
+            <span>枚/点</span>
           </div>
 
-          <div className="flex-grow overflow-y-auto pr-0.5 space-y-1 scrollbar-thin max-h-[105px]">
+          <div className="flex-grow overflow-y-auto pr-0.5 space-y-1 scrollbar-thin max-h-[105px] portrait:max-h-[125px]">
             {/* Goods list */}
             {Object.entries(player.goodsTokens).map(([key, tokens]) => {
               if (tokens.length === 0) return null;
@@ -241,14 +241,14 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
               const label = commodityLabels[type].label;
               const sum = tokens.reduce((s, v) => s + v, 0);
               return (
-                <div key={type} className="flex justify-between items-center text-[10px] text-slate-300">
+                <div key={type} className="flex justify-between items-center text-[10px] portrait:text-[8px] text-slate-300">
                   <div className="flex items-center gap-1">
                     <span className={`w-1.5 h-1.5 rounded-full ${
                       type === 'diamonds' ? 'bg-red-500' : type === 'gold' ? 'bg-yellow-500' : type === 'silver' ? 'bg-slate-400' : type === 'cloth' ? 'bg-purple-500' : type === 'spice' ? 'bg-emerald-500' : 'bg-amber-800'
                     }`}></span>
-                    <span className="truncate max-w-[45px]">{label}</span>
+                    <span className="truncate max-w-[45px] portrait:max-w-[30px]">{label}</span>
                   </div>
-                  <span className="font-mono text-slate-400 text-[9px] shrink-0">
+                  <span className="font-mono text-slate-400 text-[9px] portrait:text-[7.5px] shrink-0">
                     {tokens.length}枚({sum}点)
                   </span>
                 </div>
@@ -262,12 +262,12 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
               const label = type === 'bonus3' ? '3枚売' : type === 'bonus4' ? '4枚売' : '5枚売';
               const sum = tokens.reduce((s, v) => s + v, 0);
               return (
-                <div key={type} className="flex justify-between items-center text-[10px] text-yellow-400/90 font-medium">
+                <div key={type} className="flex justify-between items-center text-[10px] portrait:text-[8px] text-yellow-400/90 font-medium">
                   <div className="flex items-center gap-0.5">
                     <span>✨</span>
-                    <span>{label}</span>
+                    <span className="truncate max-w-[45px] portrait:max-w-[30px]">{label}</span>
                   </div>
-                  <span className="font-mono text-[9px]">
+                  <span className="font-mono text-[9px] portrait:text-[7.5px]">
                     {tokens.length}枚({sum}点)
                   </span>
                 </div>
@@ -277,7 +277,7 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
             {/* Empty state */}
             {Object.values(player.goodsTokens).every(t => t.length === 0) &&
              Object.values(player.bonusTokens).every(t => t.length === 0) && (
-              <div className="h-full flex items-center justify-center text-[9px] text-slate-600 font-medium py-6 text-center">
+              <div className="h-full flex items-center justify-center text-[9px] portrait:text-[7px] text-slate-600 font-medium py-6 text-center">
                 なし
               </div>
             )}
