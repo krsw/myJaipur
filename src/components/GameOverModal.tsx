@@ -20,19 +20,12 @@ const countTokens = (player: PlayerState) => {
 export const GameOverModal: React.FC<GameOverModalProps> = ({ state, onUpdateCamel, onNextRound, onResetGame }) => {
   if (!state.roundOver) return null;
 
-  const [revealStage, setRevealStage] = useState(0);
+  const [revealStage, setRevealStage] = useState(-1);
 
+  // Reset to input state whenever the roundOver becomes true
   useEffect(() => {
     if (state.roundOver) {
-      setRevealStage(0);
-      const t1 = setTimeout(() => setRevealStage(1), 800);
-      const t2 = setTimeout(() => setRevealStage(2), 1600);
-      const t3 = setTimeout(() => setRevealStage(3), 2400);
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
+      setRevealStage(-1);
     }
   }, [state.roundOver]);
 
@@ -45,6 +38,15 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({ state, onUpdateCam
   const winnerName = state.gameWinner
     ? (state.gameWinner === 'player1' ? p1.name : p2.name)
     : (state.roundWinner === 'player1' ? p1.name : state.roundWinner === 'player2' ? p2.name : '引き分け');
+
+  const isTie = !state.gameWinner && state.roundWinner === 'tie';
+
+  const startScoreCounting = () => {
+    setRevealStage(0);
+    setTimeout(() => setRevealStage(1), 800);
+    setTimeout(() => setRevealStage(2), 1600);
+    setTimeout(() => setRevealStage(3), 2400);
+  };
 
   // Helper to calculate score during reveal animation stages
   const getIntermediateScore = (player: PlayerState, stats: any, stage: number) => {
@@ -71,7 +73,42 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({ state, onUpdateCam
     return score;
   };
 
+  const currentCamelOwner = p1.camelCount > p2.camelCount && p1.camelCount > 0
+    ? 'player1'
+    : p2.camelCount > p1.camelCount && p2.camelCount > 0
+      ? 'player2'
+      : null;
+
   const isRevealedFinal = revealStage >= 3;
+
+  const getHeaderBannerLabel = () => {
+    if (revealStage < 3) {
+      if (revealStage === -1) return '🐫 ラクダ入力 🐫';
+      return '🥁 集計中 🥁';
+    }
+    if (isGameWinner) return '🏆 ゲーム終了 🏆';
+    return '🔔 ラウンド終了 🔔';
+  };
+
+  const getHeaderTitle = () => {
+    if (revealStage < 3) {
+      if (revealStage === -1) return '各プレイヤーのラクダ数を入力';
+      return '得点を集計しています...';
+    }
+    if (isGameWinner) return `${winnerName} の総合勝利！`;
+    if (isTie) return 'ラウンドは引き分け！';
+    return `${winnerName} がラウンドを獲得！`;
+  };
+
+  const getHeaderSubtitle = () => {
+    if (revealStage < 3) {
+      if (revealStage === -1) return '手元のラクダカードの枚数を入力し、「得点集計を開始」を押してください。';
+      return 'ボーナストークンの得点を開示しています...';
+    }
+    if (isGameWinner) return 'マハラジャ of 専属商人に選ばれました！';
+    if (isTie) return '両者一歩も譲らない大接戦！';
+    return '優秀の証 (🪙) を1つ獲得しました！';
+  };
 
   const renderBonusCard = (player: PlayerState, type: 'bonus3' | 'bonus4' | 'bonus5', label: string, stageTrigger: number) => {
     const tokens = player.bonusTokens[type];
@@ -112,187 +149,120 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({ state, onUpdateCam
     );
   };
 
+  const renderPlayerColumn = (player: PlayerState, stats: any) => {
+    return (
+      <div className="bg-slate-950/40 rounded-2xl border border-slate-800 p-4 flex flex-col justify-between">
+        <div>
+          <h3 className="font-extrabold text-white text-center border-b border-slate-800 pb-2 mb-3">
+            {player.name}
+          </h3>
+          <div className="space-y-3.5 text-xs text-slate-300">
+            
+            {/* 1. Camel Counter (Top) */}
+            <div className="flex flex-col gap-1.5 bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
+              <div className="flex justify-between items-center">
+                <span className="flex items-center gap-1 font-semibold">🐫 ラクダの所持数:</span>
+                <span className="font-mono font-bold text-yellow-400">
+                  {revealStage === -1 ? (
+                    currentCamelOwner === player.id ? '最多候補' : ''
+                  ) : revealStage < 3 ? (
+                    '集計中...'
+                  ) : state.camelOwner === player.id ? (
+                    '+5点 (最多)'
+                  ) : (
+                    '0点'
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-end items-center gap-2 mt-0.5">
+                <button
+                  onClick={() => onUpdateCamel(player.id, player.camelCount - 1)}
+                  disabled={revealStage !== -1}
+                  className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 active:scale-90 text-slate-300 font-bold rounded-lg border border-slate-700/60 disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  -
+                </button>
+                <span className="font-mono font-extrabold text-white text-sm min-w-[20px] text-center">
+                  {player.camelCount}
+                </span>
+                <button
+                  onClick={() => onUpdateCamel(player.id, player.camelCount + 1)}
+                  disabled={revealStage !== -1}
+                  className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 active:scale-90 text-slate-300 font-bold rounded-lg border border-slate-700/60 disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Goods Score (Middle) */}
+            <div className="flex justify-between items-center bg-slate-900/40 p-2 rounded-xl border border-slate-850">
+              <span className="font-semibold">商品トークン得点:</span>
+              <span className="font-mono font-bold text-white text-sm">{stats.goodsScore}点</span>
+            </div>
+
+            {/* 3. Bonus Tokens (Bottom) */}
+            <div className="space-y-1.5 pt-1 border-t border-slate-850">
+              <div className="flex justify-between text-[11px] font-bold text-slate-400 mb-1">
+                <span>ボーナストークン:</span>
+                <span className="font-mono text-yellow-400">計 {getIntermediateBonusScore(player, revealStage)}点</span>
+              </div>
+              {renderBonusCard(player, 'bonus3', '3枚売', 1)}
+              {renderBonusCard(player, 'bonus4', '4枚売', 2)}
+              {renderBonusCard(player, 'bonus5', '5枚売', 3)}
+            </div>
+
+            {/* 4. Tiebreaker Stats */}
+            <div className="pt-2 border-t border-slate-850 text-[10px] text-slate-500 space-y-1">
+              <div className="flex justify-between">
+                <span>ボーナス枚数:</span>
+                <span className="font-mono">{stats.totalBonuses}枚</span>
+              </div>
+              <div className="flex justify-between">
+                <span>商品枚数:</span>
+                <span className="font-mono">{stats.totalGoods}枚</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-slate-800 text-center">
+          <div className="text-[10px] text-slate-400 font-bold uppercase">合計点数</div>
+          <div className="text-3xl font-black text-yellow-400">
+            {getIntermediateScore(player, stats, revealStage)}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center z-50 p-4 select-none">
       <div className="bg-slate-900 border-2 border-yellow-500/50 rounded-3xl w-full max-w-2xl overflow-hidden shadow-[0_0_50px_rgba(234,179,8,0.25)] animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Banner header with reveal condition */}
+        {/* Banner header */}
         <div className={`px-6 py-7 text-center text-slate-950 transition-all duration-500 ${
           isRevealedFinal 
             ? 'bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600' 
             : 'bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700 text-white'
         }`}>
           <span className="text-[10px] sm:text-xs font-black tracking-widest uppercase opacity-85">
-            {!isRevealedFinal ? '🥁 集計中 🥁' : isGameWinner ? '🏆 ゲーム終了 🏆' : '🔔 ラウンド終了 🔔'}
+            {getHeaderBannerLabel()}
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-wide mt-1 h-9 flex items-center justify-center">
-            {!isRevealedFinal ? '得点を集計しています...' : isGameWinner ? `${winnerName} の総合勝利！` : `${winnerName} がラウンドを獲得！`}
+            {getHeaderTitle()}
           </h2>
           <div className="text-[10px] sm:text-xs font-bold tracking-wider mt-1 opacity-80 h-4 flex items-center justify-center">
-            {!isRevealedFinal ? (
-              <span className="animate-pulse">ボーナストークンの得点を開示しています...</span>
-            ) : isGameWinner ? (
-              'マハラジャ of 専属商人に選ばれました！'
-            ) : state.roundWinner !== 'tie' ? (
-              '優秀の証 (🪙) を1つ獲得しました！'
-            ) : (
-              '両者一歩も譲らない大接戦！'
-            )}
+            {getHeaderSubtitle()}
           </div>
         </div>
 
         {/* Detailed Breakdown */}
         <div className="p-5 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            
-            {/* Player 1 Col */}
-            <div className="bg-slate-950/40 rounded-2xl border border-slate-800 p-4 flex flex-col justify-between">
-              <div>
-                <h3 className="font-extrabold text-white text-center border-b border-slate-800 pb-2 mb-3">
-                  {p1.name}
-                </h3>
-                <div className="space-y-3.5 text-xs text-slate-300">
-                  <div className="flex justify-between">
-                    <span>商品トークン得点:</span>
-                    <span className="font-mono font-bold text-white">{p1Stats.goodsScore}点</span>
-                  </div>
-
-                  {/* Bonus tokens with 3D Flip Card */}
-                  <div className="space-y-1.5 pt-1 border-t border-slate-850">
-                    <div className="flex justify-between text-[11px] font-bold text-slate-400 mb-1">
-                      <span>ボーナストークン:</span>
-                      <span className="font-mono text-yellow-400">計 {getIntermediateBonusScore(p1, revealStage)}点</span>
-                    </div>
-                    {renderBonusCard(p1, 'bonus3', '3枚売', 1)}
-                    {renderBonusCard(p1, 'bonus4', '4枚売', 2)}
-                    {renderBonusCard(p1, 'bonus5', '5枚売', 3)}
-                  </div>
-
-                  {/* Camel counter */}
-                  <div className="flex flex-col gap-1.5 bg-slate-900/60 p-2 rounded-xl border border-slate-800/80 pt-1 border-t border-slate-850">
-                    <div className="flex justify-between items-center">
-                      <span className="flex items-center gap-1 font-semibold">🐫 ラクダの所持数:</span>
-                      <span className="font-mono font-bold text-yellow-400">
-                        {revealStage < 3 ? '集計中...' : state.camelOwner === 'player1' ? '+5点 (最多)' : '0点'}
-                      </span>
-                    </div>
-                    <div className="flex justify-end items-center gap-2 mt-0.5">
-                      <button
-                        onClick={() => onUpdateCamel('player1', p1.camelCount - 1)}
-                        disabled={!isRevealedFinal}
-                        className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 active:scale-90 text-slate-300 font-bold rounded-lg border border-slate-700/60 disabled:opacity-30 disabled:pointer-events-none"
-                      >
-                        -
-                      </button>
-                      <span className="font-mono font-extrabold text-white text-sm min-w-[20px] text-center">
-                        {p1.camelCount}
-                      </span>
-                      <button
-                        onClick={() => onUpdateCamel('player1', p1.camelCount + 1)}
-                        disabled={!isRevealedFinal}
-                        className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 active:scale-90 text-slate-300 font-bold rounded-lg border border-slate-700/60 disabled:opacity-30 disabled:pointer-events-none"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Tiebreaker details */}
-                  <div className="pt-2 border-t border-slate-850 text-[10px] text-slate-500 space-y-1">
-                    <div className="flex justify-between">
-                      <span>ボーナス枚数:</span>
-                      <span className="font-mono">{p1Stats.totalBonuses}枚</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>商品枚数:</span>
-                      <span className="font-mono">{p1Stats.totalGoods}枚</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-800 text-center">
-                <div className="text-[10px] text-slate-400 font-bold uppercase">合計点数</div>
-                <div className="text-3xl font-black text-yellow-400">
-                  {getIntermediateScore(p1, p1Stats, revealStage)}
-                </div>
-              </div>
-            </div>
-
-            {/* Player 2 Col */}
-            <div className="bg-slate-950/40 rounded-2xl border border-slate-800 p-4 flex flex-col justify-between">
-              <div>
-                <h3 className="font-extrabold text-white text-center border-b border-slate-800 pb-2 mb-3">
-                  {p2.name}
-                </h3>
-                <div className="space-y-3.5 text-xs text-slate-300">
-                  <div className="flex justify-between">
-                    <span>商品トークン得点:</span>
-                    <span className="font-mono font-bold text-white">{p2Stats.goodsScore}点</span>
-                  </div>
-
-                  {/* Bonus tokens with 3D Flip Card */}
-                  <div className="space-y-1.5 pt-1 border-t border-slate-850">
-                    <div className="flex justify-between text-[11px] font-bold text-slate-400 mb-1">
-                      <span>ボーナストークン:</span>
-                      <span className="font-mono text-yellow-400">計 {getIntermediateBonusScore(p2, revealStage)}点</span>
-                    </div>
-                    {renderBonusCard(p2, 'bonus3', '3枚売', 1)}
-                    {renderBonusCard(p2, 'bonus4', '4枚売', 2)}
-                    {renderBonusCard(p2, 'bonus5', '5枚売', 3)}
-                  </div>
-
-                  {/* Camel counter */}
-                  <div className="flex flex-col gap-1.5 bg-slate-900/60 p-2 rounded-xl border border-slate-800/80 pt-1 border-t border-slate-850">
-                    <div className="flex justify-between items-center">
-                      <span className="flex items-center gap-1 font-semibold">🐫 ラクダの所持数:</span>
-                      <span className="font-mono font-bold text-yellow-400">
-                        {revealStage < 3 ? '集計中...' : state.camelOwner === 'player2' ? '+5点 (最多)' : '0点'}
-                      </span>
-                    </div>
-                    <div className="flex justify-end items-center gap-2 mt-0.5">
-                      <button
-                        onClick={() => onUpdateCamel('player2', p2.camelCount - 1)}
-                        disabled={!isRevealedFinal}
-                        className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 active:scale-90 text-slate-300 font-bold rounded-lg border border-slate-700/60 disabled:opacity-30 disabled:pointer-events-none"
-                      >
-                        -
-                      </button>
-                      <span className="font-mono font-extrabold text-white text-sm min-w-[20px] text-center">
-                        {p2.camelCount}
-                      </span>
-                      <button
-                        onClick={() => onUpdateCamel('player2', p2.camelCount + 1)}
-                        disabled={!isRevealedFinal}
-                        className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 active:scale-90 text-slate-300 font-bold rounded-lg border border-slate-700/60 disabled:opacity-30 disabled:pointer-events-none"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Tiebreaker details */}
-                  <div className="pt-2 border-t border-slate-850 text-[10px] text-slate-500 space-y-1">
-                    <div className="flex justify-between">
-                      <span>ボーナス枚数:</span>
-                      <span className="font-mono">{p2Stats.totalBonuses}枚</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>商品枚数:</span>
-                      <span className="font-mono">{p2Stats.totalGoods}枚</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-800 text-center">
-                <div className="text-[10px] text-slate-400 font-bold uppercase">合計点数</div>
-                <div className="text-3xl font-black text-yellow-400">
-                  {getIntermediateScore(p2, p2Stats, revealStage)}
-                </div>
-              </div>
-            </div>
-
+            {renderPlayerColumn(p1, p1Stats)}
+            {renderPlayerColumn(p2, p2Stats)}
           </div>
 
           {/* Tiebreaker log if scores were equal - only show when fully revealed */}
@@ -302,6 +272,18 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({ state, onUpdateCam
               得点が同点（{p1.score}点）のため、タイブレーク判定を行いました。<br />
               1. **ボーナストークンの獲得枚数**の多いプレイヤーが勝利（{p1.name}: {p1Stats.totalBonuses}枚 vs {p2.name}: {p2Stats.totalBonuses}枚）<br />
               2. それでも同点の場合は、**商品トークンの獲得枚数**の多いプレイヤーが勝利（{p1.name}: {p1Stats.totalGoods}枚 vs {p2.name}: {p2Stats.totalGoods}枚）
+            </div>
+          )}
+
+          {/* Initial Camel Trigger button */}
+          {revealStage === -1 && (
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={startScoreCounting}
+                className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-98 text-white font-black tracking-widest text-sm shadow-lg shadow-blue-500/20 transition animate-in zoom-in duration-200"
+              >
+                📊 得点の集計を開始する ➡
+              </button>
             </div>
           )}
 
