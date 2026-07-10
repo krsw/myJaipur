@@ -87,6 +87,7 @@ export const useJaipur = () => {
       bonus4: shuffle(BONUS_POOLS.bonus4),
       bonus5: shuffle(BONUS_POOLS.bonus5),
     },
+    currentTurn: 'player1',
     camelOwner: null,
     player1: createInitialPlayer('player1', 'プレイヤー 1'),
     player2: createInitialPlayer('player2', 'プレイヤー 2'),
@@ -178,10 +179,28 @@ export const useJaipur = () => {
     return updatedState;
   }, []);
 
+  // Turn switcher
+  const switchTurn = useCallback(() => {
+    setState((prev) => {
+      const nextTurn: PlayerId = prev.currentTurn === 'player1' ? 'player2' : 'player1';
+      return {
+        ...prev,
+        currentTurn: nextTurn,
+        history: [`手番が ${nextTurn === 'player1' ? 'プレイヤー 1' : 'プレイヤー 2'} に移りました。`, ...prev.history],
+      };
+    });
+  }, []);
+
   // Sell Action
   const sellGoods = useCallback((playerId: PlayerId, goodsType: GoodsType, count: number) => {
     setState((prev) => {
       if (prev.roundOver) return prev;
+      
+      // Prevent action if it's not this player's turn
+      if (prev.currentTurn !== playerId) {
+        alert('手番のプレイヤーのみアクションを実行できます。');
+        return prev;
+      }
 
       const activePlayer = playerId === 'player1' ? prev.player1 : prev.player2;
       const stock = prev.goodsStocks[goodsType];
@@ -194,16 +213,17 @@ export const useJaipur = () => {
         return prev;
       }
 
-      if (count > stock.length) {
-        alert('在庫が不足しています。');
+      if (stock.length === 0) {
+        alert('商品在庫がありません。');
         return prev;
       }
 
-      // 2. Claim goods tokens
-      const claimedGoods = stock.slice(0, count);
-      const remainingGoods = stock.slice(count);
+      // 2. Claim goods tokens (up to the remaining stock)
+      const acquiredCount = Math.min(count, stock.length);
+      const claimedGoods = stock.slice(0, acquiredCount);
+      const remainingGoods = stock.slice(acquiredCount);
 
-      // 3. Claim bonus token
+      // 3. Claim bonus token (based on cards sold count, not tokens acquired count)
       let bonusType: BonusType | null = null;
       if (count >= 5) bonusType = 'bonus5';
       else if (count === 4) bonusType = 'bonus4';
@@ -236,15 +256,16 @@ export const useJaipur = () => {
         };
       }
 
-      // 5. Update Game State
+      // 5. Update Game State & Switch Turn
       const updatedGoodsStocks = {
         ...prev.goodsStocks,
         [goodsType]: remainingGoods,
       };
 
+      const nextTurn: PlayerId = prev.currentTurn === 'player1' ? 'player2' : 'player1';
       const updatedHistory = [
         `${activePlayer.name} が ${goodsType === 'diamonds' ? 'ダイヤ' : goodsType === 'gold' ? '金' : goodsType === 'silver' ? '銀' : goodsType === 'cloth' ? '布' : goodsType === 'spice' ? 'スパイス' : '革'} を ${count} 枚売却しました。` +
-        (drawnBonusValue ? `（ボーナス +${drawnBonusValue}点 獲得）` : ''),
+        (drawnBonusValue ? `（ボーナス +${drawnBonusValue}点 獲得）` : '') + ` (手番が ${nextTurn === 'player1' ? 'プレイヤー 1' : 'プレイヤー 2'} に移りました。)`,
         ...prev.history,
       ];
 
@@ -252,6 +273,7 @@ export const useJaipur = () => {
         ...prev,
         goodsStocks: updatedGoodsStocks,
         bonusStocks: updatedBonusStocks,
+        currentTurn: nextTurn,
         player1: playerId === 'player1' ? updatedPlayer : prev.player1,
         player2: playerId === 'player2' ? updatedPlayer : prev.player2,
         history: updatedHistory,
@@ -339,6 +361,7 @@ export const useJaipur = () => {
       return {
         goodsStocks: freshGoods,
         bonusStocks: freshBonus,
+        currentTurn: 'player1',
         camelOwner: null,
         player1: resetPlayer(prev.player1),
         player2: resetPlayer(prev.player2),
@@ -359,6 +382,7 @@ export const useJaipur = () => {
   return {
     state,
     sellGoods,
+    switchTurn,
     updateCamelCount,
     endRoundManual,
     startNextRound,

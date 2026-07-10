@@ -17,6 +17,7 @@ export interface PlayerState {
 export interface GameState {
   goodsStocks: Record<GoodsType, number[]>; // Remaining stacks (top values first)
   bonusStocks: Record<BonusType, number[]>; // Hidden piles (shuffled)
+  currentTurn: PlayerId;
   camelOwner: PlayerId | 'tie' | null;
   player1: PlayerState;
   player2: PlayerState;

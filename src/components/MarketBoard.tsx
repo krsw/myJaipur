@@ -1,10 +1,12 @@
 import React from 'react';
-import type { GoodsType, BonusType } from '../types/game';
+import type { GoodsType, BonusType, PlayerId } from '../types/game';
 import { TokenPile } from './TokenPile';
 
 interface MarketBoardProps {
   goodsStocks: Record<GoodsType, number[]>;
   bonusStocks: Record<BonusType, number[]>;
+  currentTurn: PlayerId;
+  onSwitchTurn: () => void;
   history: string[];
   onEndRoundManual: () => void;
   onResetGame: () => void;
@@ -14,6 +16,8 @@ interface MarketBoardProps {
 export const MarketBoard: React.FC<MarketBoardProps> = ({
   goodsStocks,
   bonusStocks,
+  currentTurn,
+  onSwitchTurn,
   history,
   onEndRoundManual,
   onResetGame,
@@ -31,9 +35,22 @@ export const MarketBoard: React.FC<MarketBoardProps> = ({
             JAIPUR 市場
           </h1>
           <div className="text-xs px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700/80 text-slate-300">
-            売り切れの商品: <span className="font-extrabold text-yellow-400">{emptyPilesCount}</span> / 3
+            売切: <span className="font-extrabold text-yellow-400">{emptyPilesCount}</span> / 3
           </div>
         </div>
+
+        {/* Turn Switcher Button */}
+        <button
+          onClick={onSwitchTurn}
+          disabled={roundOver}
+          className={`px-5 py-2 sm:px-8 sm:py-3 rounded-2xl text-xs sm:text-sm font-black tracking-widest text-white transition-all active:scale-95 duration-300 shadow-md ${
+            currentTurn === 'player1'
+              ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-500/30 ring-2 ring-blue-500/20'
+              : 'bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-500 hover:from-yellow-400 hover:to-amber-400 text-yellow-950 shadow-yellow-500/30 ring-2 ring-yellow-500/20'
+          }`}
+        >
+          {currentTurn === 'player1' ? '👤 プレイヤー 1 手番終了 ➡' : '👤 プレイヤー 2 手番終了 ➡'}
+        </button>
 
         <div className="flex gap-2">
           {/* Reset Button */}

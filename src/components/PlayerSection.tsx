@@ -3,10 +3,9 @@ import type { GoodsType, PlayerState, PlayerId, BonusType } from '../types/game'
 
 interface PlayerSectionProps {
   player: PlayerState;
-  opponentCamelCount: number;
+  currentTurn: PlayerId;
   goodsStocks: Record<GoodsType, number[]>;
   onSell: (playerId: PlayerId, goodsType: GoodsType, count: number) => void;
-  onUpdateCamel: (playerId: PlayerId, count: number) => void;
   isRotatedDefault?: boolean;
 }
 
@@ -21,10 +20,9 @@ const commodityLabels: Record<GoodsType, { label: string; colorClass: string; is
 
 export const PlayerSection: React.FC<PlayerSectionProps> = ({
   player,
-  opponentCamelCount,
+  currentTurn,
   goodsStocks,
   onSell,
-  onUpdateCamel,
   isRotatedDefault = false,
 }) => {
   const [isRotated, setIsRotated] = useState(isRotatedDefault);
@@ -38,10 +36,9 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
   });
 
   const handleIncrement = (type: GoodsType) => {
-    const stockLength = goodsStocks[type].length;
     setSaleCounts((prev) => {
       const current = prev[type];
-      if (current >= stockLength) return prev;
+      if (current >= 9) return prev;
       return { ...prev, [type]: current + 1 };
     });
   };
@@ -66,19 +63,30 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
     }));
   };
 
-  const hasCamelBonus = player.camelCount > opponentCamelCount && player.camelCount > 0;
+  const isMyTurn = player.id === currentTurn;
 
   return (
     <div
       id={player.id}
-      className={`flex flex-col bg-slate-900/90 border border-slate-800 rounded-2xl px-3 py-2 portrait:px-1.5 portrait:py-1 shadow-2xl transition-transform duration-500 ${
+      className={`flex flex-col bg-slate-900/90 border rounded-2xl px-3 py-2 portrait:px-1.5 portrait:py-1 shadow-2xl transition-all duration-500 ${
         isRotated ? 'rotate-180' : ''
+      } ${
+        isMyTurn 
+          ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.2)] ring-1 ring-blue-500/30' 
+          : 'border-slate-800 opacity-30 pointer-events-none filter saturate-50 brightness-75'
       } h-full justify-between`}
     >
       {/* Header Info */}
       <div className="flex justify-between items-center border-b border-slate-800/80 pb-1.5 mb-1.5 shrink-0">
         <div className="flex items-center gap-2">
-          <h2 className="text-base font-extrabold tracking-wide text-white">{player.name}</h2>
+          <h2 className="text-base font-extrabold tracking-wide text-white flex items-center gap-1.5">
+            {player.name}
+            {isMyTurn && (
+              <span className="px-1.5 py-0.5 text-[8px] font-black tracking-normal text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 rounded-md animate-pulse">
+                手番中
+              </span>
+            )}
+          </h2>
           <button
             onClick={() => setIsRotated(!isRotated)}
             className="px-1.5 py-0.5 text-[9px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-400 rounded transition"
@@ -101,7 +109,8 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
 
           <div className="text-right">
             <div className="text-lg font-black text-yellow-400 tracking-wider">
-              {player.score} <span className="text-[10px] font-medium text-slate-400">ルピー</span>
+              {Object.values(player.goodsTokens).reduce((sum, arr) => sum + arr.reduce((s, v) => s + v, 0), 0)}{' '}
+              <span className="text-[10px] font-medium text-slate-400">ルピー(商品のみ)</span>
             </div>
           </div>
         </div>
@@ -110,60 +119,56 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
       {/* Main Content (Split 9:3, changes to 10:2 in portrait mode to give wider space for cards) */}
       <div className="grid grid-cols-12 gap-2 portrait:gap-1 flex-grow min-h-0 overflow-hidden items-stretch">
         
-        {/* Left Side: Goods Sale Panel & Camel Herd Control */}
+        {/* Left Side: Goods Sale Panel */}
         <div className="col-span-9 portrait:col-span-10 flex flex-col justify-between min-h-0">
           
-          {/* Goods Cards & Camel Card Grid */}
-          <div className="grid grid-cols-7 gap-1.5 portrait:gap-0.5 flex-grow">
+          {/* Goods Cards Grid (6 Commodities) */}
+          <div className="grid grid-cols-6 gap-2 portrait:gap-0.5 flex-grow">
             {(Object.keys(commodityLabels) as GoodsType[]).map((type) => {
               const config = commodityLabels[type];
               const stock = goodsStocks[type].length;
               const count = saleCounts[type];
               const isLuxury = config.isLuxury;
-              const isDisabled = stock === 0 || (isLuxury && stock < 2) || count > stock;
+              const isDisabled = stock === 0 || (isLuxury && count < 2);
 
               return (
                 <div
                   key={type}
                   data-good={type}
-                  className={`flex flex-col justify-between p-1.5 portrait:p-0.5 rounded-xl portrait:rounded-lg bg-gradient-to-br ${config.colorClass} shadow border border-white/5`}
+                  className={`flex flex-col justify-between p-2 portrait:p-0.5 rounded-xl portrait:rounded-lg bg-gradient-to-br ${config.colorClass} shadow border border-white/5`}
                 >
                   {/* Name and Tag */}
-                  <div className="flex flex-col text-[10px] portrait:text-[8px] font-black leading-tight mb-1 portrait:mb-0.5">
+                  <div className="flex flex-col text-[11px] portrait:text-[8px] font-black leading-tight mb-1 portrait:mb-0.5">
                     <span>{config.label}</span>
-                    <span className="opacity-75 text-[7px] portrait:text-[6px] font-medium">
+                    <span className="opacity-75 text-[7.5px] portrait:text-[6px] font-medium">
                       {isLuxury ? '高級' : `数:${stock}`}
                     </span>
                   </div>
 
                   {stock === 0 ? (
-                    <div className="py-3 portrait:py-2 text-center text-[10px] portrait:text-[8px] font-black tracking-widest opacity-60">
+                    <div className="py-4 portrait:py-2 text-center text-xs portrait:text-[8px] font-black tracking-widest opacity-60">
                       切
                     </div>
-                  ) : isLuxury && stock < 2 ? (
-                    <div className="py-2.5 portrait:py-1.5 text-center text-[7px] portrait:text-[6px] font-semibold tracking-normal opacity-85 leading-tight">
-                      不可
-                    </div>
                   ) : (
-                    <div className="flex flex-col gap-1 portrait:gap-0.5 mt-1 portrait:mt-0.5 shrink-0">
-                      {/* Counter */}
-                      <div className="flex justify-between items-center bg-black/20 rounded-md portrait:rounded px-0.5 py-0.5">
+                    <div className="flex flex-col gap-1.5 portrait:gap-0.5 mt-1 portrait:mt-0.5 shrink-0">
+                      {/* Counter with enlarged touch targets */}
+                      <div className="flex justify-between items-center bg-black/20 rounded-lg portrait:rounded px-1 py-1 portrait:px-0.5 portrait:py-0.5">
                         <button
                           onClick={() => handleDecrement(type)}
                           disabled={count <= (isLuxury ? 2 : 1)}
                           data-action="decrement"
-                          className="w-4 h-4 portrait:w-3 portrait:h-3 flex items-center justify-center font-bold text-white text-[9px] portrait:text-[7px] hover:bg-white/10 disabled:opacity-30 rounded transition"
+                          className="w-8 h-8 sm:w-10 sm:h-10 portrait:w-6 portrait:h-6 flex items-center justify-center font-extrabold text-white text-base portrait:text-xs hover:bg-white/10 disabled:opacity-20 rounded-md transition"
                         >
                           -
                         </button>
-                        <span className="font-extrabold text-[10px] portrait:text-[8.5px] text-center min-w-[8px]">
+                        <span className="font-extrabold text-xs sm:text-sm portrait:text-[8.5px] text-center min-w-[10px]">
                           {count}
                         </span>
                         <button
                           onClick={() => handleIncrement(type)}
-                          disabled={count >= stock}
+                          disabled={count >= 9}
                           data-action="increment"
-                          className="w-4 h-4 portrait:w-3 portrait:h-3 flex items-center justify-center font-bold text-white text-[9px] portrait:text-[7px] hover:bg-white/10 disabled:opacity-30 rounded transition"
+                          className="w-8 h-8 sm:w-10 sm:h-10 portrait:w-6 portrait:h-6 flex items-center justify-center font-extrabold text-white text-base portrait:text-xs hover:bg-white/10 disabled:opacity-20 rounded-md transition"
                         >
                           +
                         </button>
@@ -174,7 +179,7 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
                         onClick={() => triggerSell(type)}
                         disabled={isDisabled}
                         data-action="sell"
-                        className="w-full py-0.5 portrait:py-0 rounded bg-black/40 hover:bg-black/60 active:scale-95 text-[9px] portrait:text-[8px] font-black text-white transition disabled:opacity-40"
+                        className="w-full py-1.5 sm:py-2.5 portrait:py-0.5 rounded bg-black/40 hover:bg-black/60 active:scale-95 text-[10px] sm:text-xs portrait:text-[8px] font-black text-white transition disabled:opacity-40"
                       >
                         売却
                       </button>
@@ -183,45 +188,6 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
                 </div>
               );
             })}
-
-            {/* 7th Card: Camel Herd Control */}
-            <div className="flex flex-col justify-between p-1.5 portrait:p-0.5 rounded-xl portrait:rounded-lg bg-slate-800 border border-slate-700/60 shadow text-slate-100">
-              <div className="flex flex-col text-[10px] portrait:text-[8px] font-black leading-tight mb-1 portrait:mb-0.5">
-                <span>🐫 ラクダ</span>
-                <span className="opacity-75 text-[7px] portrait:text-[6px] font-medium">最多:+5</span>
-              </div>
-              
-              <div className="flex flex-col gap-1 portrait:gap-0.5 mt-1 portrait:mt-0.5 shrink-0">
-                {/* Counter */}
-                <div className="flex justify-between items-center bg-black/20 rounded-md portrait:rounded px-0.5 py-0.5">
-                  <button
-                    onClick={() => onUpdateCamel(player.id, player.camelCount - 1)}
-                    className="w-4 h-4 portrait:w-3 portrait:h-3 flex items-center justify-center font-bold text-slate-400 hover:text-white bg-slate-700 rounded transition text-[9px] portrait:text-[7px]"
-                  >
-                    -
-                  </button>
-                  <span className="font-extrabold text-[10px] portrait:text-[8.5px] text-center min-w-[8px]">
-                    {player.camelCount}
-                  </span>
-                  <button
-                    onClick={() => onUpdateCamel(player.id, player.camelCount + 1)}
-                    className="w-4 h-4 portrait:w-3 portrait:h-3 flex items-center justify-center font-bold text-slate-400 hover:text-white bg-slate-700 rounded transition text-[9px] portrait:text-[7px]"
-                  >
-                    +
-                  </button>
-                </div>
-
-                {/* Status Indicator */}
-                <div className="w-full text-[8px] portrait:text-[7px] py-0.5 text-center rounded bg-slate-900/60 font-black">
-                  {hasCamelBonus ? (
-                    <span className="text-yellow-400">最多</span>
-                  ) : (
-                    <span className="text-slate-500 font-medium">なし</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
           </div>
 
         </div>
@@ -260,7 +226,6 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
               if (tokens.length === 0) return null;
               const type = key as BonusType;
               const label = type === 'bonus3' ? '3枚売' : type === 'bonus4' ? '4枚売' : '5枚売';
-              const sum = tokens.reduce((s, v) => s + v, 0);
               return (
                 <div key={type} className="flex justify-between items-center text-[10px] portrait:text-[8px] text-yellow-400/90 font-medium">
                   <div className="flex items-center gap-0.5">
@@ -268,7 +233,7 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
                     <span className="truncate max-w-[45px] portrait:max-w-[30px]">{label}</span>
                   </div>
                   <span className="font-mono text-[9px] portrait:text-[7.5px]">
-                    {tokens.length}枚({sum}点)
+                    {tokens.length}枚
                   </span>
                 </div>
               );

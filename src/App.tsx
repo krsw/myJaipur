@@ -8,6 +8,7 @@ function App() {
   const {
     state,
     sellGoods,
+    switchTurn,
     updateCamelCount,
     endRoundManual,
     startNextRound,
@@ -21,10 +22,9 @@ function App() {
       <div className="flex-1 min-h-0 h-[31dvh] portrait:h-[35dvh]">
         <PlayerSection
           player={state.player1}
-          opponentCamelCount={state.player2.camelCount}
+          currentTurn={state.currentTurn}
           goodsStocks={state.goodsStocks}
           onSell={sellGoods}
-          onUpdateCamel={updateCamelCount}
           isRotatedDefault={true}
         />
       </div>
@@ -34,6 +34,8 @@ function App() {
         <MarketBoard
           goodsStocks={state.goodsStocks}
           bonusStocks={state.bonusStocks}
+          currentTurn={state.currentTurn}
+          onSwitchTurn={switchTurn}
           history={state.history}
           onEndRoundManual={endRoundManual}
           onResetGame={resetGame}
@@ -45,10 +47,9 @@ function App() {
       <div className="flex-1 min-h-0 h-[31dvh] portrait:h-[35dvh]">
         <PlayerSection
           player={state.player2}
-          opponentCamelCount={state.player1.camelCount}
+          currentTurn={state.currentTurn}
           goodsStocks={state.goodsStocks}
           onSell={sellGoods}
-          onUpdateCamel={updateCamelCount}
           isRotatedDefault={false}
         />
       </div>
@@ -56,6 +57,7 @@ function App() {
       {/* Game Over / Round Over Modal */}
       <GameOverModal
         state={state}
+        onUpdateCamel={updateCamelCount}
         onNextRound={startNextRound}
         onResetGame={resetGame}
       />
