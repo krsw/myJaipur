@@ -89,7 +89,7 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
           </h2>
           <button
             onClick={() => setIsRotated(!isRotated)}
-            className="px-1.5 py-0.5 text-[9px] bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-400 rounded transition"
+            className="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 rounded-lg transition"
           >
             🔄 180°回転
           </button>
@@ -120,10 +120,10 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
       <div className="grid grid-cols-12 gap-2 portrait:gap-1 flex-grow min-h-0 overflow-hidden items-stretch">
         
         {/* Left Side: Goods Sale Panel */}
-        <div className="col-span-9 portrait:col-span-10 flex flex-col justify-between min-h-0">
+        <div className="col-span-10 flex flex-col justify-between min-h-0">
           
-          {/* Goods Cards Grid (6 Commodities) */}
-          <div className="grid grid-cols-6 gap-2 portrait:gap-0.5 flex-grow">
+          {/* Goods Cards Grid (3x2 Grid for accessibility and larger touch targets) */}
+          <div className="grid grid-cols-3 gap-2 portrait:gap-1 flex-grow">
             {(Object.keys(commodityLabels) as GoodsType[]).map((type) => {
               const config = commodityLabels[type];
               const stock = goodsStocks[type].length;
@@ -135,55 +135,57 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
                 <div
                   key={type}
                   data-good={type}
-                  className={`flex flex-col justify-between p-2 portrait:p-0.5 rounded-xl portrait:rounded-lg bg-gradient-to-br ${config.colorClass} shadow border border-white/5`}
+                  className={`flex flex-col justify-between p-3 portrait:p-1.5 rounded-2xl bg-gradient-to-br ${config.colorClass} shadow border border-white/5`}
                 >
-                  {/* Name and Tag */}
-                  <div className="flex flex-col text-[11px] portrait:text-[8px] font-black leading-tight mb-1 portrait:mb-0.5">
+                  {/* Header (Name & Stock count) */}
+                  <div className="flex justify-between items-center text-[12px] portrait:text-[9.5px] font-black leading-tight border-b border-white/10 pb-1.5">
                     <span>{config.label}</span>
-                    <span className="opacity-75 text-[7.5px] portrait:text-[6px] font-medium">
-                      {isLuxury ? '高級' : `数:${stock}`}
+                    <span className="opacity-80 text-[10px] portrait:text-[8px] font-medium">
+                      {isLuxury ? '💎 高級' : `📦 在庫:${stock}`}
                     </span>
                   </div>
 
                   {stock === 0 ? (
-                    <div className="py-4 portrait:py-2 text-center text-xs portrait:text-[8px] font-black tracking-widest opacity-60">
-                      切
+                    <div className="py-6 portrait:py-4 text-center text-xs portrait:text-[8px] font-black tracking-widest opacity-60 flex-grow flex items-center justify-center">
+                      売り切れ
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-1.5 portrait:gap-0.5 mt-1 portrait:mt-0.5 shrink-0">
-                      {/* Counter with enlarged touch targets */}
-                      <div className="flex justify-between items-center bg-black/20 rounded-lg portrait:rounded px-1 py-1 portrait:px-0.5 portrait:py-0.5">
+                    <>
+                      {/* Middle: HUGE Sell Button (Main space) */}
+                      <div className="my-1.5 flex-grow flex items-center justify-center">
+                        <button
+                          onClick={() => triggerSell(type)}
+                          disabled={isDisabled}
+                          data-action="sell"
+                          className="w-full py-3.5 sm:py-5 portrait:py-2.5 rounded-xl bg-black/35 hover:bg-black/55 active:scale-95 text-xs sm:text-sm portrait:text-[10px] font-black text-white transition disabled:opacity-30 flex items-center justify-center gap-1 shadow-inner"
+                        >
+                          💰 売却 ({count}枚)
+                        </button>
+                      </div>
+
+                      {/* Bottom: Counter with large touch targets */}
+                      <div className="flex justify-between items-center bg-black/20 rounded-xl px-1.5 py-1">
                         <button
                           onClick={() => handleDecrement(type)}
                           disabled={count <= (isLuxury ? 2 : 1)}
                           data-action="decrement"
-                          className="w-8 h-8 sm:w-10 sm:h-10 portrait:w-6 portrait:h-6 flex items-center justify-center font-extrabold text-white text-base portrait:text-xs hover:bg-white/10 disabled:opacity-20 rounded-md transition"
+                          className="w-10 h-10 sm:w-11 sm:h-11 portrait:w-8 portrait:h-8 flex items-center justify-center font-extrabold text-white text-lg portrait:text-sm hover:bg-white/10 disabled:opacity-20 rounded-lg transition"
                         >
                           -
                         </button>
-                        <span className="font-extrabold text-xs sm:text-sm portrait:text-[8.5px] text-center min-w-[10px]">
+                        <span className="font-extrabold text-xs sm:text-sm portrait:text-[10px] text-center min-w-[24px]">
                           {count}
                         </span>
                         <button
                           onClick={() => handleIncrement(type)}
                           disabled={count >= 9}
                           data-action="increment"
-                          className="w-8 h-8 sm:w-10 sm:h-10 portrait:w-6 portrait:h-6 flex items-center justify-center font-extrabold text-white text-base portrait:text-xs hover:bg-white/10 disabled:opacity-20 rounded-md transition"
+                          className="w-10 h-10 sm:w-11 sm:h-11 portrait:w-8 portrait:h-8 flex items-center justify-center font-extrabold text-white text-lg portrait:text-sm hover:bg-white/10 disabled:opacity-20 rounded-lg transition"
                         >
                           +
                         </button>
                       </div>
-
-                      {/* Sell Action */}
-                      <button
-                        onClick={() => triggerSell(type)}
-                        disabled={isDisabled}
-                        data-action="sell"
-                        className="w-full py-1.5 sm:py-2.5 portrait:py-0.5 rounded bg-black/40 hover:bg-black/60 active:scale-95 text-[10px] sm:text-xs portrait:text-[8px] font-black text-white transition disabled:opacity-40"
-                      >
-                        売却
-                      </button>
-                    </div>
+                    </>
                   )}
                 </div>
               );
@@ -193,7 +195,7 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
         </div>
 
         {/* Right Side: Acquired tokens breakdown list */}
-        <div className="col-span-3 portrait:col-span-2 flex flex-col bg-slate-950/40 rounded-xl border border-slate-800/40 p-2 portrait:p-1 min-h-0 overflow-hidden justify-between">
+        <div className="col-span-2 flex flex-col bg-slate-950/40 rounded-xl border border-slate-800/40 p-2 portrait:p-1 min-h-0 overflow-hidden justify-between">
           <div className="text-[9px] portrait:text-[8px] font-bold text-slate-400 border-b border-slate-800/60 pb-1 mb-1.5 flex justify-between shrink-0">
             <span>獲得</span>
             <span>枚/点</span>

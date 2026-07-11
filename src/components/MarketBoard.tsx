@@ -52,7 +52,7 @@ export const MarketBoard: React.FC<MarketBoardProps> = ({
           {currentTurn === 'player1' ? '👤 プレイヤー 1 手番終了 ➡' : '👤 プレイヤー 2 手番終了 ➡'}
         </button>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2.5">
           {/* Reset Button */}
           <button
             onClick={() => {
@@ -60,7 +60,7 @@ export const MarketBoard: React.FC<MarketBoardProps> = ({
                 onResetGame();
               }
             }}
-            className="px-3 py-1.5 rounded-xl border border-slate-700 hover:bg-slate-800 active:scale-95 text-xs text-slate-300 font-bold transition"
+            className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 active:scale-95 text-xs sm:text-sm text-slate-300 font-bold transition"
           >
             🔄 全リセット
           </button>
@@ -73,7 +73,7 @@ export const MarketBoard: React.FC<MarketBoardProps> = ({
               }
             }}
             disabled={roundOver}
-            className="px-3 py-1.5 rounded-xl bg-red-950/40 hover:bg-red-900/40 border border-red-900/60 disabled:opacity-40 disabled:pointer-events-none active:scale-95 text-xs text-red-300 font-black transition"
+            className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-red-950/40 hover:bg-red-900/40 border border-red-900/60 disabled:opacity-40 disabled:pointer-events-none active:scale-95 text-xs sm:text-sm text-red-300 font-black transition"
           >
             ⏹️ 手動ラウンド終了
           </button>
